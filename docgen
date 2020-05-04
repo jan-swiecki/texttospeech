@@ -10,4 +10,9 @@ $(./install | sed 's/^/    /')
 ## USAGE
 
 $(./texttospeech | sed 's/^/    /')
+
+## SETUP GIT
+
+    # setup_git content
+$(cat setup_git | sed 's/^/    /')
 EOF

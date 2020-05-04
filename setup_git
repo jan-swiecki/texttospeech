@@ -1,0 +1,8 @@
+#!/bin/bash
+
+cat <<EOF > .git/hooks/pre-commit
+./docgen
+git add README.md
+EOF
+
+chmod +x .git/hooks/pre-commit
