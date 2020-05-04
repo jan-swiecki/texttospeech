@@ -1,0 +1,6 @@
+#!/bin/bash
+
+rm ~/.local/bin/texttospeech
+rm ~/.local/var/texttospeech/*
+
+echo "texttospeech uninstalled successfully"

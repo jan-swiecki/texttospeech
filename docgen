@@ -1,0 +1,13 @@
+#!/bin/bash
+
+cat <<EOF > README.md
+# texttospeech
+
+## INSTALL
+
+$(./install | sed 's/^/    /')
+
+## USAGE
+
+$(./texttospeech | sed 's/^/    /')
+EOF

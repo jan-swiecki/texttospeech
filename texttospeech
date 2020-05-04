@@ -1,0 +1,82 @@
+#!/bin/bash
+set -eo pipefail
+
+VAR_DIR=~/.local/var/texttospeech
+
+if [ -z "$1" ]; then
+  cat <<EOF
+usage:
+  texttospeech [-f] <text>  convert text to speech
+                            (-f to overwrite locally cached file)
+  texttospeech --list|-l    ls mp3 folder
+  texttospeech --clean      remove mp3 files
+EOF
+  exit
+fi
+
+mkdir -p "$VAR_DIR"
+
+export GOOGLE_APPLICATION_CREDENTIALS="$VAR_DIR/avymtsw0i5.json"
+
+if [ ! -f "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
+  echo "GOOGLE_APPLICATION_CREDENTIALS file not found: $GOOGLE_APPLICATION_CREDENTIALS" >&2
+  exit 1
+fi
+
+FORCE=0
+if [ "$1" == "-f" ]; then
+  FORCE=1
+  shift
+fi
+
+list() {
+  echo "$VAR_DIR:"
+  ls -1 "$VAR_DIR" | sed 's/^/  /'
+}
+
+if [ "$1" == "--list" -o "$1" == "-l" ]; then
+  list
+  exit
+fi
+
+if [ "$1" == "--clean" ]; then
+  rm "$VAR_DIR"/*.mp3
+  list
+  exit
+fi
+
+# language_code="pl-PL"
+# name="pl-PL-Wavenet-E"
+# ssml_gender="FEMALE"
+language_code="en-US"
+name="en-US-Wavenet-F"
+ssml_gender="FEMALE"
+
+hash="$(echo -n "$1" | sha1sum | cut -d' ' -f1)"
+prefix="${name}_${ssml_gender}"
+prefix="${prefix//-/_}"
+filename="${prefix}_${hash}.mp3"
+target_path="$VAR_DIR/$filename"
+
+mkdir -p decoded
+
+if [ ! -f "$target_path" -o "$FORCE" == "1" ]; then
+  token="$(gcloud auth application-default print-access-token)"
+  curl -s -H "Authorization: Bearer $token" \
+    -H "Content-Type: application/json; charset=utf-8" \
+    --data "{
+      'input':{
+        'text':'$1'
+      },
+      'voice':{
+        'languageCode':'$language_code',
+        'name':'$name',
+        'ssmlGender':'$ssml_gender'
+      },
+      'audioConfig':{
+        'audioEncoding':'MP3'
+      }
+    }" "https://texttospeech.googleapis.com/v1/text:synthesize" | json audioContent | base64 --decode > "$target_path"
+fi
+
+ffplay -nodisp -autoexit "$target_path" >/dev/null 2>&1
