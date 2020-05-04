@@ -3,6 +3,11 @@
 cat <<EOF > README.md
 # texttospeech
 
+## PREREQUISITES
+
+* ffplay installed
+* ~/.local folder wired properly (tested on Ubuntu 18.04)
+
 ## INSTALL
 
 $(./install | sed 's/^/    /')
@@ -13,7 +18,9 @@ $(./texttospeech | sed 's/^/    /')
 
 ## SETUP GIT
 
-    # setup_git content
+    ./setup_git
+
+    # setup_git content:
 $(cat setup_git | sed 's/^/    /')
 
 ## LICENSE

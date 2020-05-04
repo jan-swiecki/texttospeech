@@ -1,5 +1,10 @@
 # texttospeech
 
+## PREREQUISITES
+
+* ffplay installed
+* ~/.local folder wired properly (tested on Ubuntu 18.04)
+
 ## INSTALL
 
     usage: ./install <google_cloud_key_json_file>
@@ -7,14 +12,16 @@
 ## USAGE
 
     usage:
-      texttospeech [-f] <text>  convert text to speech
+      texttospeech [-f] <text>  convert text to speech and play
                                 (-f to overwrite locally cached file)
       texttospeech --list|-l    ls mp3 folder
       texttospeech --clean      remove mp3 files
 
 ## SETUP GIT
 
-    # setup_git content
+    ./setup_git
+
+    # setup_git content:
     #!/bin/bash
     
     cat <<EOF > .git/hooks/pre-commit

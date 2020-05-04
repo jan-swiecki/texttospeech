@@ -6,7 +6,7 @@ VAR_DIR=~/.local/var/texttospeech
 if [ -z "$1" ]; then
   cat <<EOF
 usage:
-  texttospeech [-f] <text>  convert text to speech
+  texttospeech [-f] <text>  convert text to speech and play
                             (-f to overwrite locally cached file)
   texttospeech --list|-l    ls mp3 folder
   texttospeech --clean      remove mp3 files

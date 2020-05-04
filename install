@@ -14,7 +14,7 @@ if [ ! -f "$1" ]; then
 fi
 
 mkdir -p ~/.local/bin
-ln -sf "$PWD/texttospeech" ~/.local/bin/texttospeech
+cp -f "$PWD/texttospeech" ~/.local/bin/texttospeech
 
 mkdir -p ~/.local/var/texttospeech
 cp "$1" ~/.local/var/texttospeech/avymtsw0i5.json
