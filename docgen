@@ -15,4 +15,8 @@ $(./texttospeech | sed 's/^/    /')
 
     # setup_git content
 $(cat setup_git | sed 's/^/    /')
+
+## LICENSE
+
+$(cat LICENSE)
 EOF
