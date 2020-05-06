@@ -1,15 +1,15 @@
 #!/bin/bash
 set -eo pipefail
-
 VAR_DIR=~/.local/var/texttospeech
 
 if [ -z "$1" ]; then
   cat <<EOF
 usage:
-  texttospeech [-f] <text>  convert text to speech and play
-                            (-f to overwrite locally cached file)
-  texttospeech --list|-l    ls mp3 folder
-  texttospeech --clean      remove mp3 files
+  texttospeech [-fa] <text>  convert text to speech and play
+                             (-f to overwrite locally cached file,
+                              -a to run asynchronously)
+  texttospeech --list|-l     ls mp3 folder
+  texttospeech --clean       remove mp3 files
 EOF
   exit
 fi
@@ -23,23 +23,77 @@ if [ ! -f "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
   exit 1
 fi
 
-FORCE=0
-if [ "$1" == "-f" ]; then
-  FORCE=1
-  shift
+# BEGIN READ ARGV
+! getopt --test > /dev/null 
+if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
+    echo 'I’m sorry, `getopt --test` failed in this environment.'
+    exit 1
 fi
+
+OPTIONS=fclsa
+LONGOPTS=force,clean,list,sound,async
+
+! PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@")
+if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+    exit 2
+fi
+eval set -- "$PARSED"
+
+FORCE=0
+AUTO_YES=0
+ENABLE_SOUND=0
+SHOW_LIST=0
+RUN_CLEAN=0
+ASYNC=0
+
+while true; do
+  case "$1" in
+    # MAIN ARGV
+    -f|--force)
+      FORCE=1
+      shift
+      ;;
+    -c|--clean)
+      RUN_CLEAN=1
+      shift
+      ;;
+    -l|--list)
+      SHOW_LIST=1
+      shift
+      ;;
+    -s|--sound)
+      ENABLE_SOUND=1
+      shift
+      ;;
+    -a|--async)
+      ASYNC=1
+      shift
+      ;;
+    # BUILD ARGV
+
+    --)
+      shift
+      break
+      ;;
+    *)
+      echo "Wrong arguments"
+      exit 3
+      ;;
+  esac
+done
+# END READ ARGV
 
 list() {
   echo "$VAR_DIR:"
   ls -1 "$VAR_DIR" | sed 's/^/  /'
 }
 
-if [ "$1" == "--list" -o "$1" == "-l" ]; then
+if [ "$SHOW_LIST" == "1" ]; then
   list
   exit
 fi
 
-if [ "$1" == "--clean" ]; then
+if [ "$RUN_CLEAN" == "1" ]; then
   rm "$VAR_DIR"/*.mp3
   list
   exit
@@ -60,23 +114,33 @@ target_path="$VAR_DIR/$filename"
 
 mkdir -p decoded
 
-if [ ! -f "$target_path" -o "$FORCE" == "1" ]; then
-  token="$(gcloud auth application-default print-access-token)"
-  curl -s -H "Authorization: Bearer $token" \
-    -H "Content-Type: application/json; charset=utf-8" \
-    --data "{
-      'input':{
-        'text':'$1'
-      },
-      'voice':{
-        'languageCode':'$language_code',
-        'name':'$name',
-        'ssmlGender':'$ssml_gender'
-      },
-      'audioConfig':{
-        'audioEncoding':'MP3'
-      }
-    }" "https://texttospeech.googleapis.com/v1/text:synthesize" | json audioContent | base64 --decode > "$target_path"
-fi
+run () {
+  if [ ! -f "$target_path" -o "$FORCE" == "1" ]; then
+    token="$(gcloud auth application-default print-access-token)"
+    curl -s -H "Authorization: Bearer $token" \
+      -H "Content-Type: application/json; charset=utf-8" \
+      --data "{
+        'input':{
+          'text':'${1//\'/\\\'}'
+        },
+        'voice':{
+          'languageCode':'$language_code',
+          'name':'$name',
+          'ssmlGender':'$ssml_gender'
+        },
+        'audioConfig':{
+          'audioEncoding':'MP3',
+          'effectsProfileId': ['headphone-class-device']
+        }
+      }" "https://texttospeech.googleapis.com/v1/text:synthesize" | json audioContent | base64 --decode > "$target_path"
+  fi
 
-ffplay -nodisp -autoexit "$target_path" >/dev/null 2>&1
+  ffplay -nodisp -autoexit "$target_path" >/dev/null 2>&1
+}
+
+
+if [ "$ASYNC" == 1 ]; then
+  run "$1" & disown -a
+else
+  run "$1"
+fi

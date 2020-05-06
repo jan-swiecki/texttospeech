@@ -12,10 +12,11 @@
 ## USAGE
 
     usage:
-      texttospeech [-f] <text>  convert text to speech and play
-                                (-f to overwrite locally cached file)
-      texttospeech --list|-l    ls mp3 folder
-      texttospeech --clean      remove mp3 files
+      texttospeech [-fa] <text>  convert text to speech and play
+                                 (-f to overwrite locally cached file,
+                                  -a to run asynchronously)
+      texttospeech --list|-l     ls mp3 folder
+      texttospeech --clean       remove mp3 files
 
 ## SETUP GIT
 
