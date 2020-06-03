@@ -112,8 +112,6 @@ prefix="${prefix//-/_}"
 filename="${prefix}_${hash}.mp3"
 target_path="$VAR_DIR/$filename"
 
-mkdir -p decoded
-
 run () {
   if [ ! -f "$target_path" -o "$FORCE" == "1" ]; then
     token="$(gcloud auth application-default print-access-token)"
