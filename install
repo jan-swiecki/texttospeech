@@ -1,14 +1,20 @@
 #!/bin/bash
 set -eo pipefail
 
-if [ -z "$1" ]; then
+if [[ "$1" != "--install" ]]; then
   cat <<EOF
-usage: ./install <google_cloud_key_json_file>
+usage: ./install --install [google_cloud_key_json_file]
+
+Arguments
+  google_cloud_key_json_file  google cloud json file path
+                              (optional if already installed)
 EOF
   exit
 fi
 
-if [ ! -f "$1" ]; then
+shift
+
+if [[ ! -f "$1" ]] && [[ ! -f ~/.local/var/texttospeech/avymtsw0i5.json ]]; then
   echo "Must provide valid path for GOOGLE_APPLICATION_CREDENTIALS file" >&2
   exit 1
 fi
@@ -17,6 +23,9 @@ mkdir -p ~/.local/bin
 cp -f "$PWD/texttospeech" ~/.local/bin/texttospeech
 
 mkdir -p ~/.local/var/texttospeech
-cp "$1" ~/.local/var/texttospeech/avymtsw0i5.json
+
+if [[ -n $1 ]]
+	then cp "$1" ~/.local/var/texttospeech/avymtsw0i5.json
+fi
 
 echo "texttospeech installed successfully"

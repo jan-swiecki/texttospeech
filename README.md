@@ -7,7 +7,11 @@
 
 ## INSTALL
 
-    usage: ./install <google_cloud_key_json_file>
+    usage: ./install --install [google_cloud_key_json_file]
+    
+    Arguments
+      google_cloud_key_json_file  google cloud json file path
+                                  (optional if already installed)
 
 ## USAGE
 
